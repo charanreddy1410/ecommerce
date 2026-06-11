@@ -79,7 +79,6 @@ class ConnectionManager:
                 try:
                     await websocket.send_json(message)
                 except Exception:
-
                     disconnected.append(websocket)
 
             for websocket in disconnected:
@@ -160,4 +159,4 @@ class ConnectionManager:
             })
 
 
-manager = ConnectionManager()
+manager: ConnectionManager = ConnectionManager()

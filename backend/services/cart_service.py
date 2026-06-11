@@ -2,8 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 from backend.models.cart import Cart, CartItem
-from backend.schemas.cart import CartItemBase, CartItemCreate, CartItemResponse, CartitemUpdate
+from backend.schemas.cart import CartItemBase, CartItemCreate, CartItemResponse, CartItemUpdate
 from backend.models.product import Product
+from sqlalchemy.orm import selectinload
 
 # helper - get or create cart
 
@@ -27,7 +28,12 @@ async def get_cart(user_id: int, db: AsyncSession):
     
     # fetch cart items with product details
     result = await db.execute(
-        select(CartItem).where(CartItem.cart_id == cart.id))
+        select(CartItem)
+        .options(
+            selectinload(CartItem.product)
+            .selectinload(Product.category)
+        )
+        .where(CartItem.cart_id == cart.id))
     
     items = result.scalars().all()
 
@@ -96,13 +102,23 @@ async def add_to_cart(user_id: int, item_data: CartItemCreate, db: AsyncSession)
 
 # update cart item quantity
 
-async def update_cart_item(user_id: int, item_id: int, item_data: CartitemUpdate, db: AsyncSession):
+async def update_cart_item(user_id: int, item_id: int, item_data: CartItemUpdate, db: AsyncSession):
     cart = await get_or_create_cart(user_id, db)
 
     # find cart item
     result = await db.execute(
         select(CartItem).where(CartItem.cart_id == cart.id, CartItem.id == item_id)
     )
+    result = await db.execute(
+        select(CartItem)
+        .options(
+            selectinload(CartItem.product)
+        )
+        .where(
+            CartItem.cart_id == item_id, 
+            CartItem.cart_id == cart.id
+            )
+        )
     item = result.scalar_one_or_none()
 
     if not item:

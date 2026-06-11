@@ -23,7 +23,7 @@ async def register(user_data: UserCreate, db: AsyncSession):
     new_user = User(
         name=user_data.name,
         email=user_data.email,
-        hashed_password=hash_password(user_data.password),
+        password=hash_password(user_data.password),
         role=UserRole.customer,  # default role
     )
 
@@ -41,7 +41,7 @@ async def login(user_data: UserLogin, db: AsyncSession):
 
     # wrong email or wrong password - same error message for security
     # never reveal which one is wrong
-    if not user or not verify_password(user_data.password, user.hashed_password):
+    if not user or not verify_password(user_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",

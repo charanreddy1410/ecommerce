@@ -5,6 +5,7 @@ from backend.models.order import Order, OrderItem, OrderStatus
 from backend.schemas.order import OrderStatusUpdate, OrderCreate, OrderResponse, OrderItemBase
 from backend.models.product import Product
 from backend.services.cart_service import get_cart, clear_cart
+from backend.websockets.manager import manager
 
 
 #place order
@@ -58,6 +59,11 @@ async def place_order(user_id: int, order_data: OrderCreate, db: AsyncSession):
         product.stock -= item.quantity
 
     await db.commit()
+    await manager.notify_new_order(
+        order_id=new_order.id,
+        user_id=user_id,
+        total=new_order.total_amount
+    )
     await db.refresh(new_order)
 
     # clear the cart after the successful order
@@ -147,6 +153,11 @@ async def update_order_status(
     
     order.status = status_data.status
     await db.commit()
+    await manager.notify_order_status_change(
+        order_id=order.id,
+        user_id=order.user_id,
+        new_status=status_data.status.value
+    )
     await db.refresh(order)
     return order
 
