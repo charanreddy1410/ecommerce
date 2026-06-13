@@ -17,6 +17,7 @@ import {
   Store,
   Dashboard,
   Logout,
+  Receipt,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -68,13 +69,29 @@ const Navbar: React.FC = () => {
             Products
           </Button>
           {isAdmin && (
-            <Button
-              color="inherit"
-              startIcon={<Dashboard />}
-              onClick={() => navigate("/admin/dashboard")}
-            >
-              Admin
-            </Button>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                color="inherit"
+                startIcon={<Dashboard />}
+                onClick={() => navigate("/admin/dashboard")}
+              >
+                Dashboard
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<Receipt />}
+                onClick={() => navigate("/admin/orders")}
+              >
+                Manage Orders
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<Receipt />}
+                onClick={() => navigate("/admin/products")}
+              >
+                Manage Products
+              </Button>
+            </Box>
           )}
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

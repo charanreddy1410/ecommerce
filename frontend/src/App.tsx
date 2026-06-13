@@ -12,8 +12,8 @@ import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetails";
 import Dashboard from "./pages/admin/Dashboard";
-
-const Home = () => <div>Home Page Coming Soon</div>;
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminProducts from "./pages/admin/AdminProducts";
 
 const theme = createTheme({
   palette: {
@@ -36,7 +36,7 @@ const App: React.FC = () => {
       <BrowserRouter>
         <Navbar />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Products />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/products" element={<Products />} />
@@ -80,6 +80,22 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute requireAdmin={true}>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/products"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminProducts />
               </ProtectedRoute>
             }
           />

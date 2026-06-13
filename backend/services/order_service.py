@@ -151,7 +151,12 @@ async def update_order_status(
         db: AsyncSession
 ):
     result = await db.execute(
-        select(Order).where(Order.id==order_id)
+        select(Order)
+        .options(selectinload(Order.items)
+                .selectinload(OrderItem.product)
+                .selectinload(Product.category)
+                )
+                .where(Order.id==order_id)
     )
     order = result.scalar_one_or_none()
 
@@ -188,27 +193,28 @@ async def update_order_status(
 # admin - get all orders
 
 async def admin_get_all_orders(
-        db: AsyncSession,
-        page:int=1,
-        per_page:int=10,
-        status:OrderStatus=None
+    db: AsyncSession,
+    page: int = 1,
+    per_page: int = 10,
+    status: OrderStatus = None
 ):
     query = select(Order)
-
-    # filter by status if provided
-
     if status:
-        query = query.where(Order.status==status)
-    
+        query = query.where(Order.status == status)
+
     count_result = await db.execute(
         select(func.count()).select_from(query.subquery())
     )
     total = count_result.scalar()
 
-    #paginated
-    offset = (page-1)*per_page
+    offset = (page - 1) * per_page
     result = await db.execute(
         query
+        .options(
+            selectinload(Order.items)
+            .selectinload(OrderItem.product)
+            .selectinload(Product.category)
+        )
         .order_by(Order.created_at.desc())
         .offset(offset)
         .limit(per_page)
@@ -221,3 +227,4 @@ async def admin_get_all_orders(
         "per_page": per_page,
         "orders": orders
     }
+
