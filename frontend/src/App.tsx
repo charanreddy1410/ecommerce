@@ -11,6 +11,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetails";
+import Dashboard from "./pages/admin/Dashboard";
 
 const Home = () => <div>Home Page Coming Soon</div>;
 
@@ -71,6 +72,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <OrderDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <Dashboard />
               </ProtectedRoute>
             }
           />

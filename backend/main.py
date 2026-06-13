@@ -129,7 +129,7 @@ async def order_tracking(
         print(f"Client disconnected from order {order_id}")
 
 
-@app.websocket("/ws/admin/")
+@app.websocket("/ws/admin")
 async def admin_dashboard(
     websocket: WebSocket,
     token: str
@@ -141,7 +141,7 @@ async def admin_dashboard(
 
     # verify token before accepting connection
     payload = decode_token(token)
-    if not payload or int(payload.get("role")) != "admin":
+    if not payload or payload.get("role") != "admin":
         await websocket.close(code=1008)   # policy violation
         return
 
