@@ -18,6 +18,7 @@ import {
   Dashboard,
   Logout,
   Receipt,
+  Inventory,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -86,7 +87,7 @@ const Navbar: React.FC = () => {
               </Button>
               <Button
                 color="inherit"
-                startIcon={<Receipt />}
+                startIcon={<Inventory />}
                 onClick={() => navigate("/admin/products")}
               >
                 Manage Products
