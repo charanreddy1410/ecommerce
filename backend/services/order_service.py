@@ -6,6 +6,7 @@ from backend.schemas.order import OrderStatusUpdate, OrderCreate, OrderResponse,
 from backend.models.product import Product
 from backend.services.cart_service import get_cart, clear_cart
 from backend.websockets.manager import manager
+from sqlalchemy.orm import selectinload
 
 
 #place order
@@ -58,24 +59,37 @@ async def place_order(user_id: int, order_data: OrderCreate, db: AsyncSession):
 
         product.stock -= item.quantity
 
-    await db.commit()
-    await manager.notify_new_order(
-        order_id=new_order.id,
-        user_id=user_id,
-        total=new_order.total_amount
-    )
-    await db.refresh(new_order)
+        # Reload order with all relationships needed by OrderResponse
+        result = await db.execute(
+                select(Order)
+                .options(
+                    selectinload(Order.items)
+                    .selectinload(OrderItem.product)
+                )
+                .where(Order.id == new_order.id)
+            )
 
-    # clear the cart after the successful order
-    await clear_cart(user_id, db)
+        order = result.scalar_one()
 
-    return new_order
+        # clear the cart after the successful order
+        await clear_cart(user_id, db)
+
+        return order
 
 # get order by id
 
 async def get_order_by_id(order_id: int, user_id: int, db: AsyncSession):
     result = await db.execute(
-        select(Order).where(Order.id==order_id, Order.user_id==user_id)
+        select(Order)
+        .options(
+            selectinload(Order.items)
+            .selectinload(OrderItem.product)
+            .selectinload(Product.category)
+        )
+        .where(
+            Order.id == order_id,
+            Order.user_id == user_id
+        )
     )
     order = result.scalar_one_or_none()
 
@@ -94,26 +108,36 @@ async def get_order_history(
     page: int = 1,
     per_page: int = 10
 ):
+    # Get total count
     count_result = await db.execute(
-        select(func.count()).where(Order.user_id==user_id)
+        select(func.count())
+        .select_from(Order)
+        .where(Order.user_id == user_id)
     )
+
     total = count_result.scalar()
 
-    #paginated orders
+    # Pagination
+    offset = (page - 1) * per_page
 
-    offset = (page-1)*per_page
+    # Load all relationships needed by the response schema
     result = await db.execute(
         select(Order)
-        .where(Order.user_id==user_id)
+        .options(
+            selectinload(Order.items)
+            .selectinload(OrderItem.product)
+            .selectinload(Product.category)
+        )
+        .where(Order.user_id == user_id)
         .order_by(Order.created_at.desc())
         .offset(offset)
         .limit(per_page)
     )
-    
+
     orders = result.scalars().all()
 
-    return{
-        "total":total,
+    return {
+        "total": total,
         "page": page,
         "per_page": per_page,
         "orders": orders

@@ -107,15 +107,13 @@ async def update_cart_item(user_id: int, item_id: int, item_data: CartItemUpdate
 
     # find cart item
     result = await db.execute(
-        select(CartItem).where(CartItem.cart_id == cart.id, CartItem.id == item_id)
-    )
-    result = await db.execute(
         select(CartItem)
         .options(
             selectinload(CartItem.product)
+            .selectinload(Product.category)
         )
         .where(
-            CartItem.cart_id == item_id, 
+            CartItem.id == item_id, 
             CartItem.cart_id == cart.id
             )
         )
